@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 행운 예측 - 로또 번호 생성기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* 사용자 정의 스타일 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f3f4f6; /* 기본 배경색을 밝은 회색으로 설정 */
+        }
+        .dark body {
+            background-color: #111827; /* 다크 모드 배경색 */
+        }
+        /* 로또 볼 색상 지정을 위한 클래스 */
+        .lotto-ball {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .lotto-ball:hover {
+            transform: scale(1.1);
+        }
+        .ball-yellow { background-color: #fbc400; } /* 1-10 */
+        .ball-blue { background-color: #69c8f2; }   /* 11-20 */
+        .ball-red { background-color: #ff7272; }    /* 21-30 */
+        .ball-gray { background-color: #aaa; }      /* 31-40 */
+        .ball-green { background-color: #b0d840; }  /* 41-45 */
+
+        /* 로딩 스피너 애니메이션 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    
+    <!-- 전체 페이지 컨테이너 -->
+    <div class="min-h-screen">
+        <!-- 상단 내비게이션 바 -->
+        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- 로고 -->
+                    <div class="flex-shrink-0">
+                        <a href="#" class="text-2xl font-black text-indigo-600 dark:text-indigo-400">🔮 AI 행운 예측</a>
+                    </div>
+                    <!-- 데스크탑 메뉴 -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="#" class="bg-indigo-600 text-white px-3 py-2 rounded-md text-sm font-bold" aria-current="page">로또</a>
+                            <a href="#" class="text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium">손금보기</a>
+                            <a href="#" class="text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium">주식 예측</a>
+                            <a href="#" class="text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium">코인 예측</a>
+                        </div>
+                    </div>
+                    <!-- 모바일 메뉴 버튼 -->
+                    <div class="-mr-2 flex md:hidden">
+                        <button id="mobile-menu-button" type="button" class="bg-gray-200 dark:bg-gray-700 inline-flex items-center justify-center p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                            <span class="sr-only">메뉴 열기</span>
+                            <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- 모바일 메뉴 (숨김/표시) -->
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#" class="bg-indigo-600 text-white block px-3 py-2 rounded-md text-base font-bold" aria-current="page">로또</a>
+                    <a href="#" class="text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium">손금보기</a>
+                    <a href="#" class="text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium">주식 예측</a>
+                    <a href="#" class="text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium">코인 예측</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 메인 콘텐츠 (로또 생성기) -->
+        <main class="flex items-center justify-center p-4 py-8 md:py-12">
+            <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
+                <header class="text-center mb-8">
+                    <h1 class="text-3xl md:text-4xl font-black text-indigo-600 dark:text-indigo-400">
+                        <span>🎱</span> 로또 번호 생성기
+                    </h1>
+                    <p class="mt-2 text-gray-500 dark:text-gray-400">이번 주 행운의 번호를 받아보세요!</p>
+                </header>
+                <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                    <div class="flex items-center gap-3">
+                        <label for="count" class="font-bold text-lg">생성 개수:</label>
+                        <select id="count" class="bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg p-2 font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="1">1세트</option>
+                            <option value="2">2세트</option>
+                            <option value="3">3세트</option>
+                            <option value="5" selected>5세트</option>
+                            <option value="10">10세트</option>
+                        </select>
+                    </div>
+                    <button id="generate-btn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <span id="btn-text">🍀 행운 번호 생성</span>
+                        <div id="spinner" class="spinner hidden"></div>
+                    </button>
+                </div>
+                <div id="results" class="space-y-4">
+                    <div class="text-center text-gray-400 dark:text-gray-500 py-8">
+                        <p>버튼을 눌러 번호를 생성해 주세요.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- 모바일 메뉴 토글 스크립트 ---
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const openIcon = mobileMenuButton.querySelector('svg:first-child');
+        const closeIcon = mobileMenuButton.querySelector('svg:last-child');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            openIcon.classList.toggle('hidden');
+            openIcon.classList.toggle('block');
+            closeIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('block');
+        });
+
+        // --- 기존 로또 생성기 스크립트 ---
+        const generateBtn = document.getElementById('generate-btn');
+        const countSelect = document.getElementById('count');
+        const resultsDiv = document.getElementById('results');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('spinner');
+
+        function getBallColor(number) {
+            if (number <= 10) return 'ball-yellow';
+            if (number <= 20) return 'ball-blue';
+            if (number <= 30) return 'ball-red';
+            if (number <= 40) return 'ball-gray';
+            return 'ball-green';
+        }
+
+        function copyToClipboard(numbers, button) {
+            navigator.clipboard.writeText(numbers.join(', '))
+                .then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = '복사 완료!';
+                    button.classList.add('bg-green-500', 'hover:bg-green-600');
+                    button.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                        button.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                    }, 1500);
+                })
+                .catch(err => {
+                    console.error('복사 실패:', err)
+                    // execCommand는 오래된 방식이지만, https 환경이 아닐 때를 위한 fallback
+                    const textArea = document.createElement("textarea");
+                    textArea.value = numbers.join(', ');
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        const originalText = button.textContent;
+                        button.textContent = '복사 완료!';
+                        setTimeout(() => { button.textContent = originalText; }, 1500);
+                    } catch (execErr) {
+                        console.error('Fallback 복사 실패:', execErr);
+                    }
+                    document.body.removeChild(textArea);
+                });
+        }
+
+        generateBtn.addEventListener('click', async () => {
+            const count = parseInt(countSelect.value, 10);
+            btnText.textContent = '생성 중...';
+            spinner.classList.remove('hidden');
+            generateBtn.disabled = true;
+            resultsDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: count }),
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (data.sets && data.sets.length > 0) {
+                    data.sets.forEach((numberSet, index) => {
+                        const setHtml = `
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl shadow-inner animate-fade-in">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="font-bold text-lg text-indigo-600 dark:text-indigo-400">GAME ${String.fromCharCode(65 + index)}</span>
+                                    <button class="copy-btn bg-gray-500 hover:bg-gray-600 text-white text-xs font-bold py-1 px-3 rounded-full transition-colors">복사</button>
+                                </div>
+                                <div class="flex justify-center gap-2 flex-wrap">
+                                    ${numberSet.map(num => `<div class="lotto-ball ${getBallColor(num)}">${num}</div>`).join('')}
+                                </div>
+                            </div>`;
+                        resultsDiv.insertAdjacentHTML('beforeend', setHtml);
+                    });
+
+                    document.querySelectorAll('.copy-btn').forEach((button, index) => {
+                        button.addEventListener('click', () => copyToClipboard(data.sets[index], button));
+                    });
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<p class="text-center text-red-500">번호 생성 중 오류가 발생했습니다. 다시 시도해 주세요.</p>';
+                console.error("Fetch Error:", error);
+            } finally {
+                btnText.textContent = '🍀 행운 번호 생성';
+                spinner.classList.add('hidden');
+                generateBtn.disabled = false;
+            }
+        });
+
+        // 간단한 페이드인 애니메이션을 위한 CSS 추가
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.5s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
